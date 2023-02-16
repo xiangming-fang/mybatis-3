@@ -28,6 +28,8 @@ public final class PropertyNamer {
     // Prevent Instantiation of Static Class
   }
 
+  // 根据方法名，属性名
+  // eg：isTrue、setTure、getTrue 都是 true
   public static String methodToProperty(String name) {
     if (name.startsWith("is")) {
       name = name.substring(2);
@@ -38,7 +40,11 @@ public final class PropertyNamer {
           "Error parsing property name '" + name + "'.  Didn't start with 'is', 'get' or 'set'.");
     }
 
+    // 如果截取之后只有一个的话
+    // 如果长度大于1，判断第二个字符是否是大写的，是大写的话说明也不是我们要的属性
+    // 感觉是因为除了26个字母，不存在长度为1的单词
     if (name.length() == 1 || (name.length() > 1 && !Character.isUpperCase(name.charAt(1)))) {
+      // toLowerCase，还是得按驼峰式的走
       name = name.substring(0, 1).toLowerCase(Locale.ENGLISH) + name.substring(1);
     }
 
@@ -49,7 +55,10 @@ public final class PropertyNamer {
     return isGetter(name) || isSetter(name);
   }
 
+  // 判断一个方法是否是getter方法
   public static boolean isGetter(String name) {
+    // 方法名以get开头，并且长度大于3
+    // 或者 方法名以 is 开头，并且长度大于2
     return (name.startsWith("get") && name.length() > 3) || (name.startsWith("is") && name.length() > 2);
   }
 
