@@ -15,11 +15,14 @@
  */
 package org.apache.ibatis.reflection;
 
+// 作用：为了加快Reflector初始化速度；
+// 用reflectorFactory这个工厂缓存reflector对象
 public interface ReflectorFactory {
 
   boolean isClassCacheEnabled();
 
   void setClassCacheEnabled(boolean classCacheEnabled);
 
+  // 找到reflector对象，是核心方法
   Reflector findForClass(Class<?> type);
 }

@@ -21,7 +21,10 @@ import java.lang.reflect.InvocationTargetException;
  * @author Clinton Begin
  */
 public interface Invoker {
+
+  // 调用底层封装好的方法 或者 没有getter/setter方法的字段
   Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException;
 
+  // 得到getter方法的返回值类型 或者 setter 方法入参类型 或者 是字段类型
   Class<?> getType();
 }

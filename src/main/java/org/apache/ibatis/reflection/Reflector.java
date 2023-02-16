@@ -89,6 +89,7 @@ public class Reflector {
   private Constructor<?> defaultConstructor;
 
   // 所有属性名称的集合，记录在这个map中的属性名全是大写的
+  // 可读、可写的属性都在这里记录 key - 全部大写属性；value - 属性名称
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
   public Reflector(Class<?> clazz) {
@@ -108,14 +109,21 @@ public class Reflector {
       // 对类的属性包装秤getFieldInvoker、setFieldInvoker
       addFields(clazz);
     }
+    // 获取getter方法截取的属性名还有成员属性名
     readablePropertyNames = getMethods.keySet().toArray(new String[0]);
+    // 获取setter方法截取的属性名还有成员属性名
     writablePropertyNames = setMethods.keySet().toArray(new String[0]);
+
+    // 构建不区分大小写的readablePropertyMap
     for (String propName : readablePropertyNames) {
       caseInsensitivePropertyMap.put(propName.toUpperCase(Locale.ENGLISH), propName);
     }
+
+    // 构建不区分大小写的writablePropertyMap
     for (String propName : writablePropertyNames) {
       caseInsensitivePropertyMap.put(propName.toUpperCase(Locale.ENGLISH), propName);
     }
+
   }
 
   private void addRecordGetMethods(Method[] methods) {
@@ -123,7 +131,7 @@ public class Reflector {
         .forEach(m -> addGetMethod(m.getName(), m, false));
   }
 
-  // 获取反射类中的午餐构造方法
+  // 获取反射类中的无参构造方法
   private void addDefaultConstructor(Class<?> clazz) {
     Constructor<?>[] constructors = clazz.getDeclaredConstructors();
     Arrays.stream(constructors).filter(constructor -> constructor.getParameterTypes().length == 0).findAny()
@@ -167,7 +175,7 @@ public class Reflector {
             winner = candidate;
           }
         }
-        // 谁是子类听谁的
+        // 这就是解决Getter冲突的办法 —— 方法返回类型谁是子类听谁的
         else if (candidateType.isAssignableFrom(winnerType)) {
           // OK getter type is descendant
         } else if (winnerType.isAssignableFrom(candidateType)) {
@@ -255,6 +263,7 @@ public class Reflector {
     Class<?> paramType2 = setter2.getParameterTypes()[0];
 
     // 入参，谁是子类就选择对应的setter方法
+    // 这就是解决Setter冲突的办法 —— 方法入参类型谁是子类听谁的
     if (paramType1.isAssignableFrom(paramType2)) {
       return setter2;
     } else if (paramType2.isAssignableFrom(paramType1)) {
@@ -321,6 +330,7 @@ public class Reflector {
     }
   }
 
+  // addSetField 底层还是在 setMethods和setTypes里加的
   private void addSetField(Field field) {
     if (isValidPropertyName(field.getName())) {
       setMethods.put(field.getName(), new SetFieldInvoker(field));
@@ -329,6 +339,7 @@ public class Reflector {
     }
   }
 
+  // addGetField 底层还是在 getMethods和getTypes里加的
   private void addGetField(Field field) {
     if (isValidPropertyName(field.getName())) {
       getMethods.put(field.getName(), new GetFieldInvoker(field));

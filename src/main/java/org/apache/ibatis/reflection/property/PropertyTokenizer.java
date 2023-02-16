@@ -20,25 +20,39 @@ import java.util.Iterator;
 /**
  * @author Clinton Begin
  */
+// 属性解析工具：负责解析 ”.“ 和 ”[]“ 构成的表达式
+// 实现 iterator 接口 可以迭代处理嵌套多层的表达式
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
+
   private String name;
   private final String indexedName;
   private String index;
   private final String children;
 
+  // 假设待解析字符串是：countrys[0].provinces[0].cities[0]
   public PropertyTokenizer(String fullname) {
     int delim = fullname.indexOf('.');
+    // 说明是多层的，存在孩子
     if (delim > -1) {
+      // name = countrys[0]
       name = fullname.substring(0, delim);
+      // delim + 1 跳过 ‘.'
+      // children = provinces[0].cities[0]
       children = fullname.substring(delim + 1);
-    } else {
+    }
+    // 只有一层，一个属性名
+    else {
       name = fullname;
       children = null;
     }
+    // indexedName = countrys[0]
     indexedName = name;
+    // 找到对应数组名字和数组下标
     delim = name.indexOf('[');
     if (delim > -1) {
+      // index = 0
       index = name.substring(delim + 1, name.length() - 1);
+      // name = countrys
       name = name.substring(0, delim);
     }
   }

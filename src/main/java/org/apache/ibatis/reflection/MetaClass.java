@@ -29,6 +29,7 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
 /**
  * @author Clinton Begin
  */
+// 封装的是Class元信息 依赖于 Reflector 和 PropertyTokenizer 去获取信息
 public class MetaClass {
 
   private final ReflectorFactory reflectorFactory;
@@ -39,15 +40,22 @@ public class MetaClass {
     this.reflector = reflectorFactory.findForClass(type);
   }
 
+  // todo 不理解为什么这么写
+  // （1）我知道这个类的构造方法 是私有的，在当前类中可用，然后这里写一个静态的方法，通过静态方法调用私有构造函数创建对象
+  // （2）可是为什么我们不能直接考虑放开 构造方法的可见范围呢？public?
+  // 不要和我解释说防止乱掉用，你都有静态方法了，我乱掉用不影响吧……
   public static MetaClass forClass(Class<?> type, ReflectorFactory reflectorFactory) {
     return new MetaClass(type, reflectorFactory);
   }
 
+  // 获取对应属性名的类型，然后创建这个类型的元信息类信息
   public MetaClass metaClassForProperty(String name) {
     Class<?> propType = reflector.getGetterType(name);
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
+  // 根据传入的字符串得到属性名
+  // eg: countrys[0].provinces[0].cities[0]
   public String findProperty(String name) {
     StringBuilder prop = buildProperty(name, new StringBuilder());
     return prop.length() > 0 ? prop.toString() : null;
@@ -68,16 +76,27 @@ public class MetaClass {
     return reflector.getSetablePropertyNames();
   }
 
+  // 得到setter方法入参的类型（或者无setter/getter方法的属性类型）
+  // eg：
+  // 传入 countrys[0].provinces[0].cities[0]
+  // 得到的就是 cities 这个属性的类型 或者 是 setCities 这个setter方法的入参类型
   public Class<?> getSetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
       MetaClass metaProp = metaClassForProperty(prop.getName());
+      // 嵌套迭代，可转成递归写法
       return metaProp.getSetterType(prop.getChildren());
-    } else {
+    }
+    // 这个可以看成递归的终止条件
+    else {
       return reflector.getSetterType(prop.getName());
     }
   }
 
+  // 得到 getter方法入参的类型（或者无setter/getter方法的属性类型）
+  // eg：
+  // 传入 countrys[0].provinces[0].cities[0]
+  // 得到的就是 cities 这个属性的类型 或者 是 getCities 这个 getter方法的返回类型
   public Class<?> getGetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -168,6 +187,10 @@ public class MetaClass {
     return reflector.getSetInvoker(name);
   }
 
+  // 构造属性字符串
+  // eg：
+  // 输入：countrys[0].provinces[0].cities[0]
+  // 得到结果：countrys.provinces.cities
   private StringBuilder buildProperty(String name, StringBuilder builder) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -176,6 +199,7 @@ public class MetaClass {
         builder.append(propertyName);
         builder.append(".");
         MetaClass metaProp = metaClassForProperty(propertyName);
+        // 一个嵌套过程的迭代，只不过没用递归写而已
         metaProp.buildProperty(prop.getChildren(), builder);
       }
     } else {

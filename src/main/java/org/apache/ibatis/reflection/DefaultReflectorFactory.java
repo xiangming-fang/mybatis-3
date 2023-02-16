@@ -20,8 +20,14 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.ibatis.util.MapUtil;
 
+// reflectorFactory 这个工厂接口的默认实现
 public class DefaultReflectorFactory implements ReflectorFactory {
+
+  // 是否启用缓存功能 默认为true
   private boolean classCacheEnabled = true;
+
+  // 缓存作用
+  // Key -> 类对象；value -> 类对象的Reflector包装类
   private final ConcurrentMap<Class<?>, Reflector> reflectorMap = new ConcurrentHashMap<>();
 
   public DefaultReflectorFactory() {

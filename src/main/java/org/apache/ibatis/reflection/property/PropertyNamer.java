@@ -22,6 +22,7 @@ import org.apache.ibatis.reflection.ReflectionException;
 /**
  * @author Clinton Begin
  */
+// 转换方法名得到属性名，判断是否是getter或者setter方法
 public final class PropertyNamer {
 
   private PropertyNamer() {

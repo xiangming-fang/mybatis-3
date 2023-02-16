@@ -24,6 +24,7 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
 /**
  * @author Clinton Begin
  */
+// 封装 对象的元信息
 public interface ObjectWrapper {
 
   Object get(PropertyTokenizer prop);

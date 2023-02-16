@@ -22,12 +22,15 @@ import org.apache.ibatis.reflection.Reflector;
 /**
  * @author Clinton Begin
  */
+// 属性拷贝工具类，实现了相同对象之间两个对象的属性拷贝
 public final class PropertyCopier {
 
   private PropertyCopier() {
     // Prevent Instantiation of Static Class
   }
 
+  // 完成属性拷贝
+  // 源对象和目标对象是同一个类型的
   public static void copyBeanProperties(Class<?> type, Object sourceBean, Object destinationBean) {
     Class<?> parent = type;
     while (parent != null) {

@@ -36,6 +36,7 @@ import org.apache.ibatis.reflection.Reflector;
 /**
  * @author Clinton Begin
  */
+// Mybatis 默认反射工厂实现
 public class DefaultObjectFactory implements ObjectFactory, Serializable {
 
   private static final long serialVersionUID = -8855120656740914948L;
@@ -56,11 +57,13 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
   private <T> T instantiateClass(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
     try {
       Constructor<T> constructor;
+      // 如果传入得构造器为空，构造方法参数也为空，那么需要调用指定类型得无参构造创建对象
       if (constructorArgTypes == null || constructorArgs == null) {
         constructor = type.getDeclaredConstructor();
         try {
           return constructor.newInstance();
         } catch (IllegalAccessException e) {
+          // todo 为什么要在 catch里判断是否有访问权限，而不是直接在上面先执行 constructor.setAccessible(true);
           if (Reflector.canControlMemberAccessible()) {
             constructor.setAccessible(true);
             return constructor.newInstance();
@@ -69,8 +72,10 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
           }
         }
       }
+      // 根据构造参数类型得到具体得构造器
       constructor = type.getDeclaredConstructor(constructorArgTypes.toArray(new Class[0]));
       try {
+        // 传入构造器的参数列表创建对象
         return constructor.newInstance(constructorArgs.toArray(new Object[0]));
       } catch (IllegalAccessException e) {
         if (Reflector.canControlMemberAccessible()) {
@@ -90,6 +95,8 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
     }
   }
 
+  // 处理接口，考虑到这个type可能是接口类，所以判断一下
+  // 如果是给定得接口就给其默认的接口下的某个实现类
   protected Class<?> resolveInterface(Class<?> type) {
     Class<?> classToCreate;
     if (type == List.class || type == Collection.class || type == Iterable.class) {

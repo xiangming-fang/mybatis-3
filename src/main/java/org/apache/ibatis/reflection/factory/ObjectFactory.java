@@ -23,6 +23,7 @@ import java.util.Properties;
  *
  * @author Clinton Begin
  */
+// Mybatis 中的反射工厂接口
 public interface ObjectFactory {
 
   /**
@@ -45,6 +46,7 @@ public interface ObjectFactory {
    *
    * @return the t
    */
+  // 传入类对象，用无参构造创建对象
   <T> T create(Class<T> type);
 
   /**
@@ -61,10 +63,12 @@ public interface ObjectFactory {
    *
    * @return the t
    */
+  // 用指定的（1）构造器参数类型 和 （2）构造器参数值 获取指定构造器，从而创建对象
   <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
 
   /**
-   * Returns true if this object can have a set of other objects. It's main purpose is to support
+   * Returns true if this object can have a set of other objects.
+   * It's main purpose is to support
    * non-java.util.Collection objects like Scala collections.
    *
    * @param <T>
