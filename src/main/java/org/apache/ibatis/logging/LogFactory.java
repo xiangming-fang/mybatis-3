@@ -101,6 +101,7 @@ public final class LogFactory {
     }
   }
 
+  // 获得具体的日志实现类构造器
   private static void setImplementation(Class<? extends Log> implClass) {
     try {
       Constructor<? extends Log> candidate = implClass.getConstructor(String.class);
