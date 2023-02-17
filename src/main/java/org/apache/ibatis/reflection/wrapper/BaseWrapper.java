@@ -36,9 +36,12 @@ public abstract class BaseWrapper implements ObjectWrapper {
 
   // 将指定属性作为集合对象返回
   protected Object resolveCollection(PropertyTokenizer prop, Object object) {
+    // 表达式为空，返回传入的object对象
     if ("".equals(prop.getName())) {
       return object;
-    } else {
+    }
+    // 有表达式，则将表达式解析成集合
+    else {
       return metaObject.getValue(prop.getName());
     }
   }

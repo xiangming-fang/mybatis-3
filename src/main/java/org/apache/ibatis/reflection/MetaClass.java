@@ -40,10 +40,6 @@ public class MetaClass {
     this.reflector = reflectorFactory.findForClass(type);
   }
 
-  // todo 不理解为什么这么写
-  // （1）我知道这个类的构造方法 是私有的，在当前类中可用，然后这里写一个静态的方法，通过静态方法调用私有构造函数创建对象
-  // （2）可是为什么我们不能直接考虑放开 构造方法的可见范围呢？public?
-  // 不要和我解释说防止乱掉用，你都有静态方法了，我乱掉用不影响吧……
   public static MetaClass forClass(Class<?> type, ReflectorFactory reflectorFactory) {
     return new MetaClass(type, reflectorFactory);
   }

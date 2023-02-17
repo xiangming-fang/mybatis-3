@@ -31,7 +31,10 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
  */
 public class BeanWrapper extends BaseWrapper {
 
+  // javaBean 对象
   private final Object object;
+
+  // javaBean 类型对应的MetaClass
   private final MetaClass metaClass;
 
   public BeanWrapper(MetaObject metaObject, Object object) {
@@ -40,22 +43,33 @@ public class BeanWrapper extends BaseWrapper {
     this.metaClass = MetaClass.forClass(object.getClass(), metaObject.getReflectorFactory());
   }
 
+  // 传入属性表达式，获取对应属性值（第一层的）
+  // eg：传入属性表达式是 => countrys[0].provinces[0].cities[0]
+  // 返回的属性值是 countrys集合属性的第一个元素。
   @Override
   public Object get(PropertyTokenizer prop) {
     if (prop.getIndex() != null) {
       Object collection = resolveCollection(prop, object);
       return getCollectionValue(prop, collection);
-    } else {
+    }
+    // 如果没有index，说明这个表达式解析出来的就是一个对象
+    // 直接获取这个表达式所对应的对象值就好了
+    else {
       return getBeanProperty(prop, object);
     }
   }
 
+  // 传入属性表达式，设置对应属性值（第一层的）
+  // eg：传入属性表达式是 => countrys[0].provinces[0].cities[0]
+  // 设置的集合是countrys第一个位置为 value
   @Override
   public void set(PropertyTokenizer prop, Object value) {
     if (prop.getIndex() != null) {
       Object collection = resolveCollection(prop, object);
       setCollectionValue(prop, collection, value);
-    } else {
+    }
+    // 只是一个普通的javabean对象
+    else {
       setBeanProperty(prop, object, value);
     }
   }
@@ -163,6 +177,7 @@ public class BeanWrapper extends BaseWrapper {
     try {
       Invoker method = metaClass.getGetInvoker(prop.getName());
       try {
+        // 调用的是getter方法，获取javabean对象相应的值
         return method.invoke(object, NO_ARGUMENTS);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);
@@ -177,9 +192,11 @@ public class BeanWrapper extends BaseWrapper {
 
   private void setBeanProperty(PropertyTokenizer prop, Object object, Object value) {
     try {
+      // 调用的是setter方法
       Invoker method = metaClass.getSetInvoker(prop.getName());
       Object[] params = { value };
       try {
+        // 设置javabean 对象相应的对象值
         method.invoke(object, params);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);
