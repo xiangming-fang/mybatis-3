@@ -23,8 +23,10 @@ import java.sql.SQLException;
 /**
  * @author Clinton Begin
  */
+// 类型转换器
 public interface TypeHandler<T> {
 
+  // 在通过PreparedStatement为Sql语句绑定参数的时候，会将传入的实参由 java类型 转成 jdbcType
   void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException;
 
   /**
@@ -40,6 +42,7 @@ public interface TypeHandler<T> {
    * @throws SQLException
    *           the SQL exception
    */
+  // SQL 执行结束，得到的 resultSet 返回结果，会将 JDBC 数据类型 转成java类型
   T getResult(ResultSet rs, String columnName) throws SQLException;
 
   T getResult(ResultSet rs, int columnIndex) throws SQLException;

@@ -35,6 +35,7 @@ import org.apache.ibatis.session.Configuration;
  * @author Simone Tripodi
  * @author Kzuki Shimizu
  */
+// 抽象类实现一个Typehandler 的公共逻辑
 public abstract class BaseTypeHandler<T> extends TypeReference<T> implements TypeHandler<T> {
 
   /**
