@@ -32,7 +32,10 @@ import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
  */
 public class MetaObject {
 
+  // 被封装的javaBean对象
   private final Object originalObject;
+
+  // 该javaBean的ObjectWrapper对象
   private final ObjectWrapper objectWrapper;
   private final ObjectFactory objectFactory;
   private final ObjectWrapperFactory objectWrapperFactory;
@@ -114,13 +117,16 @@ public class MetaObject {
   public Object getValue(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
+      // 也是一个递归过程
       MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
         return null;
       } else {
         return metaValue.getValue(prop.getChildren());
       }
-    } else {
+    }
+    // 终止条件
+    else {
       return objectWrapper.get(prop);
     }
   }
