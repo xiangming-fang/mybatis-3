@@ -38,6 +38,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+// 用于类型转换的 jdbc 类型
 public @interface MappedJdbcTypes {
   /**
    * Returns jdbc types to map {@link TypeHandler}.
@@ -51,5 +52,6 @@ public @interface MappedJdbcTypes {
    *
    * @return {@code true} if map, {@code false} if otherwise
    */
+  // 返回是否映射到jdbc null 类型上
   boolean includeNullJdbcType() default false;
 }

@@ -38,6 +38,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+// 用于指定类型转换的java类型
 public @interface MappedTypes {
   /**
    * Returns java types to map {@link TypeHandler}.
