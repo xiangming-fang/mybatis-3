@@ -37,6 +37,7 @@ import org.apache.ibatis.io.Resources;
  */
 public class TypeAliasRegistry {
 
+  // key -> 别名（全部是小写的），value -> 别名所对应的类
   private final Map<String, Class<?>> typeAliases = new HashMap<>();
 
   public TypeAliasRegistry() {
@@ -129,6 +130,8 @@ public class TypeAliasRegistry {
     }
   }
 
+  // 根据包名来指定注册多个类的别名
+  // 在mybatis-config.xml文件中的 < typeAliases> <package name=""/></> 设置的别名
   public void registerAliases(String packageName) {
     registerAliases(packageName, Object.class);
   }
@@ -141,13 +144,16 @@ public class TypeAliasRegistry {
       // Ignore inner classes and interfaces (including package-info.java)
       // Skip also inner classes. See issue #6
       if (!type.isAnonymousClass() && !type.isInterface() && !type.isMemberClass()) {
+        // 找到具体的类型了，开始一个个注册
         registerAlias(type);
       }
     }
   }
 
   public void registerAlias(Class<?> type) {
+    // 默认就是以这个类的类名为别名
     String alias = type.getSimpleName();
+    // 如果这个类上有 @Alias 标注的别名，就将别名以此为准
     Alias aliasAnnotation = type.getAnnotation(Alias.class);
     if (aliasAnnotation != null) {
       alias = aliasAnnotation.value();
@@ -160,7 +166,9 @@ public class TypeAliasRegistry {
       throw new TypeException("The parameter alias cannot be null");
     }
     // issue #748
+    // 别名全部转小写
     String key = alias.toLowerCase(Locale.ENGLISH);
+    // 别名已存在了，抛异常
     if (typeAliases.containsKey(key) && typeAliases.get(key) != null && !typeAliases.get(key).equals(value)) {
       throw new TypeException(
           "The alias '" + alias + "' is already mapped to the value '" + typeAliases.get(key).getName() + "'.");
