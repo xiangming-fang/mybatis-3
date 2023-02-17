@@ -34,6 +34,7 @@ public abstract class BaseWrapper implements ObjectWrapper {
     this.metaObject = metaObject;
   }
 
+  // 将指定属性作为集合对象返回
   protected Object resolveCollection(PropertyTokenizer prop, Object object) {
     if ("".equals(prop.getName())) {
       return object;
@@ -42,6 +43,7 @@ public abstract class BaseWrapper implements ObjectWrapper {
     }
   }
 
+  // 解析属性表达式的下标信息，然后获取集合中对应元素
   protected Object getCollectionValue(PropertyTokenizer prop, Object collection) {
     if (collection instanceof Map) {
       return ((Map) collection).get(prop.getIndex());
@@ -74,6 +76,7 @@ public abstract class BaseWrapper implements ObjectWrapper {
     }
   }
 
+  // 解析属性表达式下标信息，然后设置结合中对应位置的元素
   protected void setCollectionValue(PropertyTokenizer prop, Object collection, Object value) {
     if (collection instanceof Map) {
       ((Map) collection).put(prop.getIndex(), value);
