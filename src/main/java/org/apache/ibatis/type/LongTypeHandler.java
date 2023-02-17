@@ -27,17 +27,20 @@ public class LongTypeHandler extends BaseTypeHandler<Long> {
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Long parameter, JdbcType jdbcType) throws SQLException {
+    // 调用preparedstament.setlong 实现sql的参数绑定
     ps.setLong(i, parameter);
   }
 
   @Override
   public Long getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    // 根据列名获取指定列值
     long result = rs.getLong(columnName);
     return result == 0 && rs.wasNull() ? null : result;
   }
 
   @Override
   public Long getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    // 根据列的索引获取指定列值
     long result = rs.getLong(columnIndex);
     return result == 0 && rs.wasNull() ? null : result;
   }
