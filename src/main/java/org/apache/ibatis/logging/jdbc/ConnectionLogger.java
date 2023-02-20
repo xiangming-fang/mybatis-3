@@ -47,6 +47,8 @@ public final class ConnectionLogger extends BaseJdbcLogger implements Invocation
         return method.invoke(this, params);
       }
       if ("prepareStatement".equals(method.getName()) || "prepareCall".equals(method.getName())) {
+        // 在创建 prepareStatement 或 prepareCall 对象之后
+        // 创建一个 preparestatement的代理对象
         if (isDebugEnabled()) {
           debug(" Preparing: " + removeExtraWhitespace((String) params[0]), true);
         }
@@ -54,10 +56,13 @@ public final class ConnectionLogger extends BaseJdbcLogger implements Invocation
         stmt = PreparedStatementLogger.newInstance(stmt, statementLog, queryStack);
         return stmt;
       } else if ("createStatement".equals(method.getName())) {
+        // 在创建statement对象之后
+        // 创建一个statement的代理对象
         Statement stmt = (Statement) method.invoke(connection, params);
         stmt = StatementLogger.newInstance(stmt, statementLog, queryStack);
         return stmt;
       } else {
+        // 除了以上三个方法以外，其它对象都是connection对象直接调用
         return method.invoke(connection, params);
       }
     } catch (Throwable t) {

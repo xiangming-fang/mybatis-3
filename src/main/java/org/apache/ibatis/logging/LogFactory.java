@@ -104,11 +104,14 @@ public final class LogFactory {
   // 获得具体的日志实现类构造器
   private static void setImplementation(Class<? extends Log> implClass) {
     try {
+      // 获取 implClass 这个适配器的构造方法
       Constructor<? extends Log> candidate = implClass.getConstructor(String.class);
+      // 尝试加载 implClass 这个适配器的对象
       Log log = candidate.newInstance(LogFactory.class.getName());
       if (log.isDebugEnabled()) {
         log.debug("Logging initialized using '" + implClass + "' adapter.");
       }
+      // 加载成功，更新logConstructor字段
       logConstructor = candidate;
     } catch (Throwable t) {
       throw new LogException("Error setting Log implementation.  Cause: " + t, t);
