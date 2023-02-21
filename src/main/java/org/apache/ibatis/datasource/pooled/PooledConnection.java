@@ -32,13 +32,30 @@ class PooledConnection implements InvocationHandler {
   private static final Class<?>[] IFACES = new Class<?>[] { Connection.class };
 
   private final int hashCode;
+
+  // 表示当前 poolConnection 对象归属于 那个 pooledDataSource
   private final PooledDataSource dataSource;
+
+  // 当前 poolConnection 对象 底层真正的 数据库连接对象
   private final Connection realConnection;
+
+  // 真正连接对象 realConnection 的代理对象
   private final Connection proxyConnection;
+
+  // 使用方从连接池中获取连接（的时候）的时间戳
   private long checkoutTimestamp;
+
+  // 连接创建的时间戳
   private long createdTimestamp;
+
+  // 连接最后一次被使用的时间戳
   private long lastUsedTimestamp;
+
+  // 数据库连接标识，主要用于连接对象确认归属的连接池
+  // 依赖于 url + user + password
   private int connectionTypeCode;
+
+  // 用于标识 pooledConnection 是否有效
   private boolean valid;
 
   /**
@@ -245,10 +262,13 @@ class PooledConnection implements InvocationHandler {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
     if (CLOSE.equals(methodName)) {
+      // 如果调用的是close方法并不是关闭这个连接，而是将这个连接返回给这个连接关联的连接池
       dataSource.pushConnection(this);
       return null;
     }
     try {
+      // 只要不是顶级父类 Object的方法，都要检测当前 poolConnection 连接是否还有效
+      // 其实就是检测 valid 成员属性
       if (!Object.class.equals(method.getDeclaringClass())) {
         // issue #579 toString() should never fail
         // throw an SQLException instead of a Runtime

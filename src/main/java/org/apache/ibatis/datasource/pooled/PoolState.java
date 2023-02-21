@@ -21,19 +21,40 @@ import java.util.List;
 /**
  * @author Clinton Begin
  */
+// 维护jdbc连接池中连接的各种状态
+  // jdbc 里的连接是PooledConnection 对象
 public class PoolState {
 
   protected PooledDataSource dataSource;
 
+  // 连接池中空闲的jdbc连接数目
   protected final List<PooledConnection> idleConnections = new ArrayList<>();
+
+  // 连接池中在干活的jdbc连接数目
   protected final List<PooledConnection> activeConnections = new ArrayList<>();
+
+  // 请求数据库的连接次数
   protected long requestCount = 0;
+
+  // 获取连接的累计耗时
   protected long accumulatedRequestTime = 0;
+
+  // 所有连接的 checkoutTime 累加
   protected long accumulatedCheckoutTime = 0;
+
+  // 当连接长时间未归还给连接池，那么该连接会被认为超时，这个字段记录超时的连接个数
   protected long claimedOverdueConnectionCount = 0;
+
+  // 记录了累计超时时间
   protected long accumulatedCheckoutTimeOfOverdueConnections = 0;
+
+  // 当连接池里的连接全部在干活，那么新的请求进来会被阻塞，这个字段是记录阻塞的总时长
   protected long accumulatedWaitTime = 0;
+
+  // 记录阻塞等待总次数
   protected long hadToWaitCount = 0;
+
+  // 无效的连接数
   protected long badConnectionCount = 0;
 
   public PoolState(PooledDataSource dataSource) {

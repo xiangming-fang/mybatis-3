@@ -36,25 +36,37 @@ import org.apache.ibatis.io.Resources;
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
+// 不是数据库连接池的连接方式
 public class UnpooledDataSource implements DataSource {
 
+  // 加载 driver 类的类加载器
   private ClassLoader driverClassLoader;
+
+  // 数据库连接驱动的相关配置
   private Properties driverProperties;
+
+  // 缓存所有已注册的数据库连接驱动
   private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
+  // jdbc 驱动
   private String driver;
   private String url;
   private String username;
   private String password;
 
   private Boolean autoCommit;
+
+  // 事务隔离级别
   private Integer defaultTransactionIsolationLevel;
   private Integer defaultNetworkTimeout;
 
+  // 将已在 DriverManager 中 注册的 JDBC 驱动器实例 复制一份到 unpooledDataSource.registeredDrivers
   static {
+    // 从 DriverManager 中读取JDBC驱动
     Enumeration<Driver> drivers = DriverManager.getDrivers();
     while (drivers.hasMoreElements()) {
       Driver driver = drivers.nextElement();
+      // 复制一份驱动给当前类的 registeredDrivers
       registeredDrivers.put(driver.getClass().getName(), driver);
     }
   }
@@ -223,9 +235,13 @@ public class UnpooledDataSource implements DataSource {
     return doGetConnection(props);
   }
 
+  // 获取数据库连接
   private Connection doGetConnection(Properties properties) throws SQLException {
+    // 初始化数据库驱动
     initializeDriver();
+    // 创建数据库连接
     Connection connection = DriverManager.getConnection(url, properties);
+    // 配置数据库连接
     configureConnection(connection);
     return connection;
   }

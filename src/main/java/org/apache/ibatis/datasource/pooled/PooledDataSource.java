@@ -40,10 +40,13 @@ import org.apache.ibatis.logging.LogFactory;
  *
  * @author Clinton Begin
  */
+// 由于jdbc连接的创建是非常耗时的，从数据库这一侧看，数据库连接数也是有限的
+  // 所以我们需要一个缓存池，用来缓存jdbc的连接，达到复用的作用
 public class PooledDataSource implements DataSource {
 
   private static final Log log = LogFactory.getLog(PooledDataSource.class);
 
+  // 维护连接池状态
   private final PoolState state = new PoolState(this);
 
   private final UnpooledDataSource dataSource;
@@ -512,6 +515,7 @@ public class PooledDataSource implements DataSource {
             if (!conn.getRealConnection().getAutoCommit()) {
               conn.getRealConnection().rollback();
             }
+            // 数据库连接标识
             conn.setConnectionTypeCode(assembleConnectionTypeCode(dataSource.getUrl(), username, password));
             conn.setCheckoutTimestamp(System.currentTimeMillis());
             conn.setLastUsedTimestamp(System.currentTimeMillis());
