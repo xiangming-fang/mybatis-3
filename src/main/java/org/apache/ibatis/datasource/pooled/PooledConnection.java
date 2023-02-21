@@ -218,6 +218,7 @@ class PooledConnection implements InvocationHandler {
    *
    * @return the time
    */
+  // 获得这个连接已经从连接池获取了多长时间了（ms)
   public long getCheckoutTime() {
     return System.currentTimeMillis() - checkoutTimestamp;
   }
