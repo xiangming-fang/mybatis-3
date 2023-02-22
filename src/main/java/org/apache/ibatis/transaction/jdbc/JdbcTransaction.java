@@ -61,6 +61,7 @@ public class JdbcTransaction implements Transaction {
     this.connection = connection;
   }
 
+  // 初始化数据库连接 connection对象
   @Override
   public Connection getConnection() throws SQLException {
     if (connection == null) {
