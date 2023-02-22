@@ -31,15 +31,21 @@ import org.apache.ibatis.session.SqlSession;
  * @author Eduardo Macarron
  * @author Lasse Voss
  */
+// mybatis 初始化过程中构造的一个对象
+  // 主要作用就是统一维护Mapper接口以及这些Mapper的代理对象工厂
 public class MapperRegistry {
 
+  // 指向Mybatis全局唯一的Configuration对象，其中维护了解析之后的全部Mybatis配置信息
   private final Configuration config;
+
+  // 维护了所有解析到的Mapper接口以及MapperProxyFactory工厂对象之间的映射关系。
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
   public MapperRegistry(Configuration config) {
     this.config = config;
   }
 
+  // 得到Mapper接口的代理类对象
   @SuppressWarnings("unchecked")
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
     final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
@@ -53,6 +59,7 @@ public class MapperRegistry {
     }
   }
 
+  // 查看这个(Mapper)接口是否已经注册在 knownMappers 中了
   public <T> boolean hasMapper(Class<T> type) {
     return knownMappers.containsKey(type);
   }
@@ -64,14 +71,17 @@ public class MapperRegistry {
       }
       boolean loadCompleted = false;
       try {
+        // 往knownMappers中注册Mapper接口
         knownMappers.put(type, new MapperProxyFactory<>(type));
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
+        // 注册之后还得解析对应的xml文件
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         parser.parse();
         loadCompleted = true;
       } finally {
+        // 解析出现异常了，那么要把刚刚注册进去的东西移除
         if (!loadCompleted) {
           knownMappers.remove(type);
         }

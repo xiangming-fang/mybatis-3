@@ -44,9 +44,13 @@ import org.apache.ibatis.session.SqlSession;
  * @author Lasse Voss
  * @author Kazuki Shimizu
  */
+// 最终执行SQL语句的地方，同时也记录了Mapper接口中的对应方法
 public class MapperMethod {
 
+  // 维护关联SQL语句的相关信息
   private final SqlCommand command;
+
+  // Mapper 接口的方法的相关信息
   private final MethodSignature method;
 
   public MapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
@@ -218,14 +222,25 @@ public class MapperMethod {
 
   public static class SqlCommand {
 
+    // 关联SQL语句的唯一标识
     private final String name;
+
+    // 维护了SQL语句的操作类型
     private final SqlCommandType type;
 
+    // 查找Mapper接口中一个方法对应的SQL语句信息
     public SqlCommand(Configuration configuration, Class<?> mapperInterface, Method method) {
+      // 方法名
       final String methodName = method.getName();
+
+      // mapper接口对象，和mapperInterface可能是父子关系，也可能是同一个类
       final Class<?> declaringClass = method.getDeclaringClass();
+
+      // MappedStatement 就是mapper.xml配置文件中一条sql语句解析之后得到的对象
       MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass, configuration);
+
       if (ms == null) {
+        // @Flush注解的处理
         if (method.getAnnotation(Flush.class) != null) {
           name = null;
           type = SqlCommandType.FLUSH;
@@ -234,7 +249,9 @@ public class MapperMethod {
               "Invalid bound statement (not found): " + mapperInterface.getName() + "." + methodName);
         }
       } else {
+        // sql语句唯一标识
         name = ms.getId();
+        // 操作类型
         type = ms.getSqlCommandType();
         if (type == SqlCommandType.UNKNOWN) {
           throw new BindingException("Unknown execution method for: " + name);
@@ -252,12 +269,16 @@ public class MapperMethod {
 
     private MappedStatement resolveMappedStatement(Class<?> mapperInterface, String methodName, Class<?> declaringClass,
         Configuration configuration) {
+      // 一条sql语句的唯一标识：类名 + 方法名
       String statementId = mapperInterface.getName() + "." + methodName;
+      // 检查configuration对象是否已经包含这个MappedStatement对象了
       if (configuration.hasStatement(statementId)) {
         return configuration.getMappedStatement(statementId);
       } else if (mapperInterface.equals(declaringClass)) {
+        // todo 如果当前方法定义在当前mapper接口中，则证明没有对应的SQL语句，返回Null，为啥？
         return null;
       }
+      // 往接口的父亲接口找，不停的往上递归
       for (Class<?> superInterface : mapperInterface.getInterfaces()) {
         if (declaringClass.isAssignableFrom(superInterface)) {
           MappedStatement ms = resolveMappedStatement(superInterface, methodName, declaringClass, configuration);
@@ -276,6 +297,7 @@ public class MapperMethod {
     private final boolean returnsMap;
     private final boolean returnsVoid;
     private final boolean returnsCursor;
+    // Optional 类型？？？
     private final boolean returnsOptional;
     private final Class<?> returnType;
     private final String mapKey;

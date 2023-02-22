@@ -26,9 +26,12 @@ import org.apache.ibatis.session.SqlSession;
 /**
  * @author Lasse Voss
  */
+// 核心功能：创建Mapper接口的代理代理对象
 public class MapperProxyFactory<T> {
 
+  // mapper 接口
   private final Class<T> mapperInterface;
+
   private final Map<Method, MapperMethodInvoker> methodCache = new ConcurrentHashMap<>();
 
   public MapperProxyFactory(Class<T> mapperInterface) {
@@ -43,6 +46,7 @@ public class MapperProxyFactory<T> {
     return methodCache;
   }
 
+  // 得到Mapper接口类的的代理对象
   @SuppressWarnings("unchecked")
   protected T newInstance(MapperProxy<T> mapperProxy) {
     return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
