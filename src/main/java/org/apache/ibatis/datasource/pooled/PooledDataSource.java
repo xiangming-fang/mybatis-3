@@ -59,8 +59,14 @@ public class PooledDataSource implements DataSource {
   // 默认阻塞时常
   protected int poolTimeToWait = 20000;
   protected int poolMaximumLocalBadConnectionTolerance = 3;
+
+  // 连接 ping 数据库的默认操作
   protected String poolPingQuery = "NO PING QUERY SET";
+
+  // 连接池中的连接能否ping数据库
   protected boolean poolPingEnabled;
+
+  // 设置数据库多长时间没使用才需要ping的一个时间值
   protected int poolPingConnectionsNotUsedFor;
 
   private int expectedConnectionTypeCode;
@@ -393,39 +399,61 @@ public class PooledDataSource implements DataSource {
     return ("" + url + username + password).hashCode();
   }
 
+  // 归还连接给连接池
+  // 1、移除活跃集合中的该pooled连接对象
+  // 2、判断这个pooled连接对象是否有效，如果有效则判断这个连接是否属于这个连接池还有连接池的空闲连接数是否已经到达上限
+  //  2.1、空闲连接数没有到达上限，并且属于这个连接池，那么以这个pooled连接底层的connection连接创造一个新的pooled连接对象，将其放入空闲连接集合中，唤醒被阻塞的获取连接的线程
+  //  2.2、如果到达上限或者不属于这个连接池，那么直接关闭该连接（先让poold连接失效，再关闭pooled连接底层的connection连接）
+  // 3、如果这个pooled对象失效，维护线程池的badconnections
   protected void pushConnection(PooledConnection conn) throws SQLException {
 
     lock.lock();
     try {
+      // 从活跃连接集合里移除这个连接
       state.activeConnections.remove(conn);
+      // 连接是否还是可用
       if (conn.isValid()) {
+        // 可用的话，先判断连接池中的空闲连接数目 是否小于 连接池中定的上限
+        // 并且还要要属于这个连接池的连接
         if (state.idleConnections.size() < poolMaximumIdleConnections
             && conn.getConnectionTypeCode() == expectedConnectionTypeCode) {
           state.accumulatedCheckoutTime += conn.getCheckoutTime();
           if (!conn.getRealConnection().getAutoCommit()) {
             conn.getRealConnection().rollback();
           }
+          // 将这个连接底层的connection连接，封装成一个新的pooledConnection对象
           PooledConnection newConn = new PooledConnection(conn.getRealConnection(), this);
+          // 将新对象加入连接池中的空闲连接集合中
           state.idleConnections.add(newConn);
           newConn.setCreatedTimestamp(conn.getCreatedTimestamp());
           newConn.setLastUsedTimestamp(conn.getLastUsedTimestamp());
+          // 老连接失效
           conn.invalidate();
           if (log.isDebugEnabled()) {
             log.debug("Returned connection " + newConn.getRealHashCode() + " to pool.");
           }
+          // 唤醒其它阻塞的空闲线程
           condition.signal();
-        } else {
+        }
+        // 空闲连接数达到上限 或者 这个连接不属于这个连接池
+        else {
           state.accumulatedCheckoutTime += conn.getCheckoutTime();
+          // 不是自动提交的，回滚
           if (!conn.getRealConnection().getAutoCommit()) {
+            // 回滚未提交事务
             conn.getRealConnection().rollback();
           }
+          // 直接关闭这个pooledConnection底层的connection连接
           conn.getRealConnection().close();
           if (log.isDebugEnabled()) {
             log.debug("Closed connection " + conn.getRealHashCode() + ".");
           }
+          // 使pooledConnection失效
           conn.invalidate();
         }
-      } else {
+      }
+      // 如果这个连接就是失效的话，那么连接池中的坏连接数 + 1
+      else {
         if (log.isDebugEnabled()) {
           log.debug("A bad connection (" + conn.getRealHashCode()
               + ") attempted to return to the pool, discarding connection.");
@@ -438,6 +466,13 @@ public class PooledDataSource implements DataSource {
   }
 
   // 从数据库连接池中获取数据库连接的代理对象 pooledConnection
+  // 主要逻辑：
+  // 1、看有没有空闲连接，有的话，取空闲的第一个连接，加入活跃连接集合。
+  // 2、没有空闲连接，判断活跃连接的数目是否已经到达上限
+  //  2.1、没有达到上限，那么创建一个pooledConnection连接，并且加入活跃集合
+  //  2.2、到达上限，取活跃线程的第一个连接，判断是否超时
+  //    2.2.1、超时了，用这个老连接的connection对象创建一个新的连接对象，将这个新的连接放入连接池中
+  //    2.2.2、没有超时，只能等待了，阻塞这个获取连接的线程，等待使用方线程释放连接
   private PooledConnection popConnection(String username, String password) throws SQLException {
     boolean countedWait = false;
     PooledConnection conn = null;
@@ -533,7 +568,7 @@ public class PooledDataSource implements DataSource {
                   log.debug("Waiting as long as " + poolTimeToWait + " milliseconds for connection.");
                 }
                 long wt = System.currentTimeMillis();
-                // 阻塞一定时间，过了阻塞时间，默认就继续往后
+                // 阻塞一定时间，阻塞获取连接的过程，因为现在没有连接给你获取，需要等待使用方释放
                 condition.await(poolTimeToWait, TimeUnit.MILLISECONDS);
                 // 维护连接池 总的阻塞等待时间
                 state.accumulatedWaitTime += System.currentTimeMillis() - wt;
@@ -592,7 +627,7 @@ public class PooledDataSource implements DataSource {
 
     }
 
-    // 如果还没获取到连接，那么没办法了，只能打日子，然后报错了
+    // 如果还没获取到连接，那么没办法了，只能打日志，然后报错了
     if (conn == null) {
       if (log.isDebugEnabled()) {
         log.debug("PooledDataSource: Unknown severe error condition.  The connection pool returned a null connection.");
@@ -612,10 +647,17 @@ public class PooledDataSource implements DataSource {
    *
    * @return True if the connection is still usable
    */
+  // 尝试连接数据库，并执行一条测试sql，检测是否能够访问到数据库
+  // 主要逻辑：
+  // 1、当前连接底层的connection连接是否关闭
+  //  1.1、关闭了，直接返回不可用
+  //  1.2、没关闭，并且连接池配置可以ping，并且当前没用使用的时间大于我们规定的时间，那么才可以ping
+  //    1.2.1、执行ping的默认语句，如果成功执行说明可以ping通，执行过程中发生了异常说明失败了
   protected boolean pingConnection(PooledConnection conn) {
     boolean result = true;
 
     try {
+      // 检测是否关闭了
       result = !conn.getRealConnection().isClosed();
     } catch (SQLException e) {
       if (log.isDebugEnabled()) {
@@ -631,6 +673,7 @@ public class PooledDataSource implements DataSource {
           log.debug("Testing connection " + conn.getRealHashCode() + " ...");
         }
         Connection realConn = conn.getRealConnection();
+        // 做简单sql测试
         try (Statement statement = realConn.createStatement()) {
           statement.executeQuery(poolPingQuery).close();
         }

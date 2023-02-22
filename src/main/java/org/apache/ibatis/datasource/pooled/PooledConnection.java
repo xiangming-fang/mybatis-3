@@ -88,6 +88,7 @@ class PooledConnection implements InvocationHandler {
    *
    * @return True if the connection is usable
    */
+  // 检测连接是否可用
   public boolean isValid() {
     return valid && realConnection != null && dataSource.pingConnection(this);
   }
