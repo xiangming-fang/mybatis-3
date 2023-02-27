@@ -50,6 +50,8 @@ public class ParamNameResolver {
    * <li>aMethod(int a, RowBounds rb, int b) -&gt; {{0, "0"}, {2, "1"}}</li>
    * </ul>
    */
+  // 记录各个参数 key -> 参数位置，value 参数名称
+    // 可以通过@param注解来指定参数名称，没有指定就是变量名称
   private final SortedMap<Integer, String> names;
 
   private boolean hasParamAnnotation;
@@ -119,6 +121,7 @@ public class ParamNameResolver {
    * @return the named params
    */
   public Object getNamedParams(Object[] args) {
+    // 获取方法中不是特殊类型（rowBounds或者ResultHandler）的参数个数
     final int paramCount = names.size();
     if (args == null || paramCount == 0) {
       return null;
