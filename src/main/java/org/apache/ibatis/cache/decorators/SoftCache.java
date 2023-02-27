@@ -29,6 +29,12 @@ import org.apache.ibatis.cache.Cache;
  *
  * @author Clinton Begin
  */
+// 强引用：我们最常用的，new 一个对象，即使内存不够也不会回收，报OOM
+  // 软引用：这个引用指向的对象，当内存不够的时候，会进行垃圾回收，如果内存够的话，那么就不会回收
+  // 弱引用：这个引用指向的对象，当jvm发生gc的时候就会进行回收（不管内存是否够用，只要gc就会被回收）
+  // 好像软引用比较适合用来做缓存，如果内存足够，那么在内存中保存一份副本，省得所有查询请求都打到数据库上
+  // 如果内存不够，那么做缓存的内存就要空闲出来（被gc回收），这时查询就要打到数据库上。
+  // 弱引用也可以做，看业务场景，个人更喜欢软引用，弱引用做的缓存被破坏的太频繁了。
 public class SoftCache implements Cache {
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;

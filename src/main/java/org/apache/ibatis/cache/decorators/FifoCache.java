@@ -25,10 +25,13 @@ import org.apache.ibatis.cache.Cache;
  *
  * @author Clinton Begin
  */
+// fifo策略：缓存内存不够的话，优先淘汰最早的缓存
 public class FifoCache implements Cache {
 
   private final Cache delegate;
+  // 保存缓存的key值
   private final Deque<Object> keyList;
+  // 最多保存size个缓存
   private int size;
 
   public FifoCache(Cache delegate) {
@@ -74,9 +77,13 @@ public class FifoCache implements Cache {
   }
 
   private void cycleKeyList(Object key) {
+    // 将这个缓存值放入keyList中
     keyList.addLast(key);
+    // 如果缓存个数大于1024，缓存的太多了，我们要淘汰一些缓存了
     if (keyList.size() > size) {
+      // 淘汰掉双端队列首位元素key
       Object oldestKey = keyList.removeFirst();
+      // 进行淘汰
       delegate.removeObject(oldestKey);
     }
   }
