@@ -291,18 +291,22 @@ public class MapperMethod {
     }
   }
 
+  // 维护了mapper接口中的相关方法信息
   public static class MethodSignature {
 
     private final boolean returnsMany;
     private final boolean returnsMap;
     private final boolean returnsVoid;
     private final boolean returnsCursor;
-    // Optional 类型？？？
     private final boolean returnsOptional;
     private final Class<?> returnType;
+    // @Mapkey 以那个字段进行聚合
     private final String mapKey;
+    // 记录了Mapper接口方法的参数列表中ResultHandler类型的参数位置
     private final Integer resultHandlerIndex;
+    // 记录了Mapper接口方法的参数列表中的rowBounds类型参数位置
     private final Integer rowBoundsIndex;
+    // 用来解析方法参数列表的工具类
     private final ParamNameResolver paramNameResolver;
 
     public MethodSignature(Configuration configuration, Class<?> mapperInterface, Method method) {

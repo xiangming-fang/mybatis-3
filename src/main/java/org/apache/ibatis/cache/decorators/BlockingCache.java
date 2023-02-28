@@ -37,7 +37,9 @@ import org.apache.ibatis.cache.CacheException;
 public class BlockingCache implements Cache {
 
   private long timeout;
+  // 封装一个Cache类型的字段，也就是被装饰的目标对象
   private final Cache delegate;
+  // 用来保存每个缓存值对应的锁，防止并发处理同一个缓存
   private final ConcurrentHashMap<Object, CountDownLatch> locks;
 
   public BlockingCache(Cache delegate) {
