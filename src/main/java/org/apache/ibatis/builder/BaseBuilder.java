@@ -32,8 +32,16 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  * @author Clinton Begin
  */
 public abstract class BaseBuilder {
+
+  // MyBatis 的初始化过程就是围绕 Configuration 对象展开的，
+  // 我们可以认为 Configuration 是一个单例对象，
+  // MyBatis 初始化解析到的全部配置信息都会记录到 Configuration 对象中。
   protected final Configuration configuration;
+
+  // 别名注册中心：可以为类定义别名
   protected final TypeAliasRegistry typeAliasRegistry;
+
+  // TypeHandler 注册中心，类型处理器注册中心
   protected final TypeHandlerRegistry typeHandlerRegistry;
 
   public BaseBuilder(Configuration configuration) {
@@ -133,6 +141,7 @@ public abstract class BaseBuilder {
     return resolveTypeHandler(javaType, typeHandlerType);
   }
 
+  // 解析类型处理器
   protected TypeHandler<?> resolveTypeHandler(Class<?> javaType, Class<? extends TypeHandler<?>> typeHandlerType) {
     if (typeHandlerType == null) {
       return null;
@@ -146,6 +155,7 @@ public abstract class BaseBuilder {
     return handler;
   }
 
+  // 解析别名
   protected <T> Class<? extends T> resolveAlias(String alias) {
     return typeAliasRegistry.resolveAlias(alias);
   }
