@@ -53,6 +53,7 @@ import org.apache.ibatis.type.TypeHandler;
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
+// MyBatis 会为每个 Mapper.xml 映射文件创建一个 XMLMapperBuilder 实例完成解析。
 public class XMLMapperBuilder extends BaseBuilder {
 
   private final XPathParser parser;
@@ -95,6 +96,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.resource = resource;
   }
 
+  // 解析Mapper.xml的入口
   public void parse() {
     if (!configuration.isResourceLoaded(resource)) {
       configurationElement(parser.evalNode("/mapper"));
@@ -111,6 +113,8 @@ public class XMLMapperBuilder extends BaseBuilder {
     return sqlFragments.get(refid);
   }
 
+  // 解析整个Mapper.xml 映射文件的内容
+  // 真正解析 Mapper.xml 映射文件的地方
   private void configurationElement(XNode context) {
     try {
       String namespace = context.getStringAttribute("namespace");
@@ -118,11 +122,17 @@ public class XMLMapperBuilder extends BaseBuilder {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
       builderAssistant.setCurrentNamespace(namespace);
+      // 这个命名空间是否用了参照缓存
       cacheRefElement(context.evalNode("cache-ref"));
+      // 命名空间是否使用二级缓存
       cacheElement(context.evalNode("cache"));
+      // 解析parameterMap标签，这个标签很少用呀，我都没用过
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
+      // 解析resultMap标签
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+      // 解析sql标签
       sqlElement(context.evalNodes("/mapper/sql"));
+      // 解析select、insert、update、delete标签
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -193,8 +203,14 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  // 解析 cache-ref 标签
+  // 二级缓存是namespace级别的，通常来讲是一个namespace一个cache
+  // 但是也有多个命名空间使用一个二级缓存的需求，cache-ref 就是这个左右咯
+  // 共享一个cache
+  // 为了解决这个需求，MyBatis提供了 <cache-ref namespace="com.xx.xx.xxMapper" > 标签来引用另一个 namespace 的二级缓存。
   private void cacheRefElement(XNode context) {
     if (context != null) {
+      // 维护多个缓存指向同一个cahce的关系
       configuration.addCacheRef(builderAssistant.getCurrentNamespace(), context.getStringAttribute("namespace"));
       CacheRefResolver cacheRefResolver = new CacheRefResolver(builderAssistant,
           context.getStringAttribute("namespace"));
@@ -206,6 +222,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  // 解析 <cache/>标签
   private void cacheElement(XNode context) {
     if (context != null) {
       String type = context.getStringAttribute("type", "PERPETUAL");
@@ -217,6 +234,7 @@ public class XMLMapperBuilder extends BaseBuilder {
       boolean readWrite = !context.getBooleanAttribute("readOnly", false);
       boolean blocking = context.getBooleanAttribute("blocking", false);
       Properties props = context.getChildrenAsProperties();
+      // 创建二级缓存
       builderAssistant.useNewCache(typeClass, evictionClass, flushInterval, size, readWrite, blocking, props);
     }
   }
@@ -248,7 +266,10 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  // 在使用 JDBC 的时候，我们需要手动写代码将select 语句的结果集转换成 Java 对象，这是一项重复性很大的操作。
+  // 为了将 Java 开发者从这种重复性的工作中解脱出来，MyBatis 提供了 <resultMap> 标签来定义结果集与 Java 对象之间的映射规则。
   private void resultMapElements(List<XNode> list) {
+    // 循环每一列的值
     for (XNode resultMapNode : list) {
       try {
         resultMapElement(resultMapNode);
@@ -262,6 +283,16 @@ public class XMLMapperBuilder extends BaseBuilder {
     return resultMapElement(resultMapNode, Collections.emptyList(), null);
   }
 
+  // resultMap中的每一行值(单个)
+  //         <id property="id" column="id"/>
+  // 或者
+  //        <result property="roleName" column="role_name"/>
+  // 或者
+  //        <association property="createInfo" javaType="tk.mybatis.simple.model.CreateInfo">
+  //            <result property="createBy" column="create_by"/>
+  //            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+  //        </association>
+  // 或者……
   private ResultMap resultMapElement(XNode resultMapNode, List<ResultMapping> additionalResultMappings,
       Class<?> enclosingType) {
     ErrorContext.instance().activity("processing " + resultMapNode.getValueBasedIdentifier());

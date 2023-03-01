@@ -20,15 +20,19 @@ import org.apache.ibatis.cache.Cache;
 /**
  * @author Clinton Begin
  */
+// CacheRefResolver 中记录了被引用的 namespace以及当前 namespace 关联的MapperBuilderAssistant 对象
+  // cache 引用解析器
 public class CacheRefResolver {
   private final MapperBuilderAssistant assistant;
   private final String cacheRefNamespace;
 
+  // cacheRefNamespace：被引用的二级缓存命名空间
   public CacheRefResolver(MapperBuilderAssistant assistant, String cacheRefNamespace) {
     this.assistant = assistant;
     this.cacheRefNamespace = cacheRefNamespace;
   }
 
+  // 解析缓存引用
   public Cache resolveCacheRef() {
     return assistant.useCacheRef(cacheRefNamespace);
   }

@@ -103,16 +103,20 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return currentNamespace + "." + base;
   }
 
+  // namespace：被引用的二级缓存命名空间
   public Cache useCacheRef(String namespace) {
     if (namespace == null) {
       throw new BuilderException("cache-ref element requires a namespace attribute.");
     }
     try {
       unresolvedCacheRef = true;
+      // 获取这个二级缓存
       Cache cache = configuration.getCache(namespace);
+      // 为空肯定报错的，我引用你的，你自己都没有，我还能正常引用吗
       if (cache == null) {
         throw new IncompleteElementException("No cache for namespace '" + namespace + "' could be found.");
       }
+      // 将当前缓存设置成被引用那个，实现二级缓存共享
       currentCache = cache;
       unresolvedCacheRef = false;
       return cache;
@@ -123,9 +127,11 @@ public class MapperBuilderAssistant extends BaseBuilder {
 
   public Cache useNewCache(Class<? extends Cache> typeClass, Class<? extends Cache> evictionClass, Long flushInterval,
       Integer size, boolean readWrite, boolean blocking, Properties props) {
+    // 将这个二级缓存和当前的命名空间绑定
     Cache cache = new CacheBuilder(currentNamespace).implementation(valueOrDefault(typeClass, PerpetualCache.class))
         .addDecorator(valueOrDefault(evictionClass, LruCache.class)).clearInterval(flushInterval).size(size)
         .readWrite(readWrite).blocking(blocking).properties(props).build();
+    // 将这个二级缓存交给全局的configuration管理
     configuration.addCache(cache);
     currentCache = cache;
     return cache;

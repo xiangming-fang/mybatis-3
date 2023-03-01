@@ -166,6 +166,7 @@ public class Configuration {
       "Mapped Statements collection")
           .conflictMessageProducer((savedValue, targetValue) -> ". please check " + savedValue.getResource() + " and "
               + targetValue.getResource());
+  // 二级缓存集合
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
@@ -183,6 +184,9 @@ public class Configuration {
    * A map holds cache-ref relationship. The key is the namespace that references a cache bound to another namespace and
    * the value is the namespace which the actual cache is bound to.
    */
+  // 维护多个命名空间指向一个cache
+  // key 是 cache-ref标签所属的namespace标识，也就是cache-ref标签是在哪个Mapper.xml文件中的
+  // value 是cache-ref指向的命名空间，也就是<cache-ref namespace="xxx.xxx.xxMapper"/> 标签中的namespace值
   protected final Map<String, String> cacheRefMap = new HashMap<>();
 
   public Configuration(Environment environment) {
@@ -767,6 +771,7 @@ public class Configuration {
     return keyGenerators.containsKey(id);
   }
 
+  // cacheId 通常是mapper.xml文件的命名空间
   public void addCache(Cache cache) {
     caches.put(cache.getId(), cache);
   }
@@ -1033,6 +1038,7 @@ public class Configuration {
     }
   }
 
+  // 严格的map，继承线程安全的集合类：concurrentHashMap
   protected static class StrictMap<V> extends ConcurrentHashMap<String, V> {
 
     private static final long serialVersionUID = -4950446264854982944L;
@@ -1079,6 +1085,7 @@ public class Configuration {
     @Override
     @SuppressWarnings("unchecked")
     public V put(String key, V value) {
+      // 检测到重复key是直接抛出异常，而不是覆盖
       if (containsKey(key)) {
         throw new IllegalArgumentException(name + " already contains value for " + key
             + (conflictMessageProducer == null ? "" : conflictMessageProducer.apply(super.get(key), value)));
