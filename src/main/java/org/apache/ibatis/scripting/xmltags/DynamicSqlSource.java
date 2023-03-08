@@ -23,6 +23,7 @@ import org.apache.ibatis.session.Configuration;
 /**
  * @author Clinton Begin
  */
+// 当 SQL 语句中包含动态 SQL 的时候，会使用 DynamicSqlSource 对象。
 public class DynamicSqlSource implements SqlSource {
 
   private final Configuration configuration;

@@ -24,6 +24,7 @@ import org.apache.ibatis.session.Configuration;
 /**
  * @author Clinton Begin
  */
+// 在动态 SQL 语句中，我们可以使用 <foreach> 标签对一个集合进行迭代
 public class ForEachSqlNode implements SqlNode {
   public static final String ITEM_PREFIX = "__frch_";
 
@@ -109,14 +110,19 @@ public class ForEachSqlNode implements SqlNode {
 
   private void applyIndex(DynamicContext context, Object o, int i) {
     if (index != null) {
+      // Key值与index属性值指定的变量名称绑定
       context.bind(index, o);
+      // Key值还会与"__frch_"+index属性值+ "_" + i 这个变量绑定
+      // 这里传入的 i 是一个自增序列，由底层的 DynamicContext 统一维护。
       context.bind(itemizeItem(index, i), o);
     }
   }
 
   private void applyItem(DynamicContext context, Object o, int i) {
     if (item != null) {
+      // Value值与item属性值指定的变量名称绑定
       context.bind(item, o);
+      // Value值还会与"__frch_"+item属性值+ "_" + i 这个变量绑定
       context.bind(itemizeItem(item, i), o);
     }
   }

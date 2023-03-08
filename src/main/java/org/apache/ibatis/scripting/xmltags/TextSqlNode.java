@@ -25,6 +25,7 @@ import org.apache.ibatis.type.SimpleTypeRegistry;
 /**
  * @author Clinton Begin
  */
+// TextSqlNode 实现抽象了包含 “${}”占位符的动态 SQL 片段
 public class TextSqlNode implements SqlNode {
   private final String text;
   private final Pattern injectionFilter;
@@ -47,7 +48,9 @@ public class TextSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 创建GenericTokenParser解析器，这里指定的占位符的起止符号分别是"${"和"}"
     GenericTokenParser parser = createParser(new BindingTokenParser(context, injectionFilter));
+    // 将解析之后的SQL片段追加到DynamicContext暂存
     context.appendSql(parser.parse(text));
     return true;
   }

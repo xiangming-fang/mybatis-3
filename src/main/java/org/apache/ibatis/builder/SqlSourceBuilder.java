@@ -32,6 +32,7 @@ import org.apache.ibatis.type.JdbcType;
 /**
  * @author Clinton Begin
  */
+// 动态sql经过一系列的sqlnode处理对应的动态标签之后，将结果交给sqlsourcebuilder处理
 public class SqlSourceBuilder extends BaseBuilder {
 
   private static final String PARAMETER_PROPERTIES = "javaType,jdbcType,mode,numericScale,resultMap,typeHandler,jdbcTypeName";
@@ -40,9 +41,11 @@ public class SqlSourceBuilder extends BaseBuilder {
     super(configuration);
   }
 
+  // 这个类的入口
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType,
         additionalParameters);
+//    创建一个识别“#{}”占位符的 GenericTokenParser 解析器
     GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
     String sql;
     if (configuration.isShrinkWhitespacesInSql()) {
@@ -86,7 +89,10 @@ public class SqlSourceBuilder extends BaseBuilder {
 
     @Override
     public String handleToken(String content) {
+      // content是前面通过GenericTokenParser识别到的#{}占位符，
+      // 这里通过buildParameterMapping()方法进行解析，得到ParameterMapping对象
       parameterMappings.add(buildParameterMapping(content));
+      // 直接返回"?"占位符，替换原有的#{}占位符
       return "?";
     }
 

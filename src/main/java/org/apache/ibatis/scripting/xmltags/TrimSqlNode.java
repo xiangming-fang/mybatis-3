@@ -27,6 +27,7 @@ import org.apache.ibatis.session.Configuration;
 /**
  * @author Clinton Begin
  */
+// TrimSqlNode 对应 MyBatis 动态 SQL 语句中的 <trim> 标签。
 public class TrimSqlNode implements SqlNode {
 
   private final SqlNode contents;
@@ -55,7 +56,9 @@ public class TrimSqlNode implements SqlNode {
   @Override
   public boolean apply(DynamicContext context) {
     FilteredDynamicContext filteredDynamicContext = new FilteredDynamicContext(context);
+    // 首先执行子SqlNode对象的apply()方法完成对应动态SQL片段的解析
     boolean result = contents.apply(filteredDynamicContext);
+    // 使用FilteredDynamicContext.applyAll()方法完成前后缀的处理操作
     filteredDynamicContext.applyAll();
     return result;
   }

@@ -20,6 +20,9 @@ import java.util.List;
 /**
  * @author Clinton Begin
  */
+// 在 MyBatis 的动态 SQL 语句中，我们可以使用 <choose>、<when> 和 <otherwise> 三个标签来实现类似if-else if -的效果。
+//  <choose> 标签会被 MyBatis 解析成 ChooseSqlNode 对象，<when> 标签会被解析成 IfSqlNode 对象，
+//  <otherwise> 标签会被解析成 MixedSqlNode 对象。
 public class ChooseSqlNode implements SqlNode {
   private final SqlNode defaultSqlNode;
   private final List<SqlNode> ifSqlNodes;

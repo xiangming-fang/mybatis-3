@@ -32,6 +32,7 @@ import org.apache.ibatis.session.Configuration;
  *
  * @author Eduardo Macarron
  */
+// 当 SQL 语句中只包含静态 SQL 的时候，会使用 RawSqlSource 对象。
 public class RawSqlSource implements SqlSource {
 
   private final SqlSource sqlSource;

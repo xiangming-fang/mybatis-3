@@ -20,7 +20,10 @@ import java.util.List;
 /**
  * @author Clinton Begin
  */
+// 在整个 SqlNode 树中充当了树枝节点，也就是扮演了组合模式中 Composite 的角色
 public class MixedSqlNode implements SqlNode {
+
+// 记录 MixedSqlNode 下所有的子 SqlNode 对象。
   private final List<SqlNode> contents;
 
   public MixedSqlNode(List<SqlNode> contents) {

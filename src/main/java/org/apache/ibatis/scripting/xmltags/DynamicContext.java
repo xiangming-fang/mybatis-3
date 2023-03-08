@@ -29,6 +29,7 @@ import org.apache.ibatis.session.Configuration;
 /**
  * @author Clinton Begin
  */
+// 在mybatis解析一条动态sql的时候会产生中间结果，这个中间结果是放在dynamiccontext中存储的
 public class DynamicContext {
 
   public static final String PARAMETER_OBJECT_KEY = "_parameter";
@@ -38,18 +39,25 @@ public class DynamicContext {
     OgnlRuntime.setPropertyAccessor(ContextMap.class, new ContextAccessor());
   }
 
+//  ContextMap 用来记录运行时用户传入的、用来替换“#{}”占位符的实参
   private final ContextMap bindings;
+
+  // 用来解析之后的SQL语句？啥意思，哈哈
   private final StringJoiner sqlBuilder = new StringJoiner(" ");
   private int uniqueNumber = 0;
 
+  // 根据传入的实参类型决定如何创建对应的contextmap对象
   public DynamicContext(Configuration configuration, Object parameterObject) {
     if (parameterObject != null && !(parameterObject instanceof Map)) {
+      // 对于非Map类型的实参，会创建对应的MetaObject对象，并封装成ContextMap对象
       MetaObject metaObject = configuration.newMetaObject(parameterObject);
       boolean existsTypeHandler = configuration.getTypeHandlerRegistry().hasTypeHandler(parameterObject.getClass());
       bindings = new ContextMap(metaObject, existsTypeHandler);
     } else {
+      // 对于Map类型的实参，这里会创建一个空的ContextMap对象
       bindings = new ContextMap(null, false);
     }
+    // 这里实参对应的Key是_parameter
     bindings.put(PARAMETER_OBJECT_KEY, parameterObject);
     bindings.put(DATABASE_ID_KEY, configuration.getDatabaseId());
   }
@@ -84,9 +92,11 @@ public class DynamicContext {
       this.fallbackParameterObject = fallbackParameterObject;
     }
 
+    // contextmap 继承了 hashmap，重写了get方法
     @Override
     public Object get(Object key) {
       String strKey = (String) key;
+      // 存在这个key，直接返回
       if (super.containsKey(strKey)) {
         return super.get(strKey);
       }
@@ -95,6 +105,7 @@ public class DynamicContext {
         return null;
       }
 
+      // 尝试parametermetaobject是否包含key这个属性，包含的话，直接返回这个属性值
       if (fallbackParameterObject && !parameterMetaObject.hasGetter(strKey)) {
         return parameterMetaObject.getOriginalObject();
       } else {

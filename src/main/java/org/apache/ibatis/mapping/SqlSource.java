@@ -21,8 +21,11 @@ package org.apache.ibatis.mapping;
  *
  * @author Clinton Begin
  */
+// Mybatis 会将 Mapper映射文件里的 sql语句解析成sqlsource对象
+  // 动态sql标签 -> 一系列的sqlnode -> sqlsourcebuilder -> sqlsource
 public interface SqlSource {
 
+  // 控制着动态 SQL 语句解析的整个流程
   BoundSql getBoundSql(Object parameterObject);
 
 }

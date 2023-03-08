@@ -18,6 +18,8 @@ package org.apache.ibatis.scripting.xmltags;
 /**
  * @author Frank D. Martinez [mnesarco]
  */
+// VarDeclSqlNode 抽象了 <bind> 标签，其核心功能是将一个 OGNL 表达式的值绑定到一个指定的变量名上，
+// 并记录到 DynamicContext 上下文中。
 public class VarDeclSqlNode implements SqlNode {
 
   private final String name;

@@ -18,6 +18,7 @@ package org.apache.ibatis.scripting.xmltags;
 /**
  * @author Clinton Begin
  */
+//  IfSqlNode 实现类对应了动态 SQL 语句中的 <if> 标签
 public class IfSqlNode implements SqlNode {
   private final ExpressionEvaluator evaluator;
   private final String test;
