@@ -36,8 +36,10 @@ import org.apache.ibatis.transaction.Transaction;
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
+// 在其他 executor实现的基础上添加了缓存的功能
 public class CachingExecutor implements Executor {
 
+  // 被装饰对象
   private final Executor delegate;
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 

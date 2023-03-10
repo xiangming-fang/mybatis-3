@@ -30,6 +30,7 @@ import org.apache.ibatis.transaction.Transaction;
 /**
  * @author Clinton Begin
  */
+// Executor 接口定义了数据库操作的基本方法
 public interface Executor {
 
   ResultHandler NO_RESULT_HANDLER = null;
