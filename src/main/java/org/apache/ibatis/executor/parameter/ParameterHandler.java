@@ -25,8 +25,10 @@ import java.sql.SQLException;
  */
 public interface ParameterHandler {
 
+//  用来获取传入的实参对象
   Object getParameterObject();
 
+  // 用来替换“?”占位符
   void setParameters(PreparedStatement ps) throws SQLException;
 
 }

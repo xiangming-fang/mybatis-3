@@ -28,10 +28,13 @@ import org.apache.ibatis.session.ResultHandler;
 /**
  * @author Clinton Begin
  */
+// 参数绑定、SQL 执行和结果映射的奠基者
+  // 其实现类完成 SQL 语句执行中最核心的一系列操作，这也是后面我们要介绍的 Executor 接口实现的基础
 public interface StatementHandler {
 
   Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException;
 
+  // SQL 语句绑定实参
   void parameterize(Statement statement) throws SQLException;
 
   void batch(Statement statement) throws SQLException;

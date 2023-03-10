@@ -47,6 +47,7 @@ import org.apache.ibatis.util.MapUtil;
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
+// Jdbc3KeyGenerator 用于获取数据库生成的自增 id（例如 MySQL 那种生成模式）
 public class Jdbc3KeyGenerator implements KeyGenerator {
 
   private static final String SECOND_GENERIC_PARAM_NAME = ParamNameResolver.GENERIC_NAME_PREFIX + "2";
@@ -76,12 +77,14 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
     if (keyProperties == null || keyProperties.length == 0) {
       return;
     }
+    // 将数据库生成的自增id作为结果集返回
     try (ResultSet rs = stmt.getGeneratedKeys()) {
       final ResultSetMetaData rsmd = rs.getMetaData();
       final Configuration configuration = ms.getConfiguration();
       if (rsmd.getColumnCount() < keyProperties.length) {
         // Error?
       } else {
+        // 处理rs这个结果集，将生成的id设置到对应的属性中
         assignKeys(configuration, rs, rsmd, keyProperties, parameter);
       }
     } catch (Exception e) {

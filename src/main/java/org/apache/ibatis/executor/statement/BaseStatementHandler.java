@@ -36,6 +36,8 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 /**
  * @author Clinton Begin
  */
+//BaseStatementHandler 只实现了 StatementHandler 接口的 prepare() 方法
+// 其 prepare() 方法实现为新建的 Statement 对象设置了一些参数，例如，timeout、fetchSize 等。
 public abstract class BaseStatementHandler implements StatementHandler {
 
   protected final Configuration configuration;
@@ -50,6 +52,7 @@ public abstract class BaseStatementHandler implements StatementHandler {
 
   protected BoundSql boundSql;
 
+  // 初始化执行 SQL 需要的 Executor 对象、为 SQL 绑定实参的 ParameterHandler 对象以及生成结果对象的 ResultSetHandler 对象
   protected BaseStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameterObject,
       RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
     this.configuration = mappedStatement.getConfiguration();
@@ -100,6 +103,7 @@ public abstract class BaseStatementHandler implements StatementHandler {
     }
   }
 
+  // 用来完成 Statement 对象的其他初始化操作
   protected abstract Statement instantiateStatement(Connection connection) throws SQLException;
 
   protected void setStatementTimeout(Statement stmt, Integer transactionTimeout) throws SQLException {

@@ -48,16 +48,21 @@ public class SimpleStatementHandler extends BaseStatementHandler {
     Object parameterObject = boundSql.getParameterObject();
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     int rows;
+    // 自增主键
     if (keyGenerator instanceof Jdbc3KeyGenerator) {
       statement.execute(sql, Statement.RETURN_GENERATED_KEYS);
       rows = statement.getUpdateCount();
+//      执行 KeyGenerator.processAfter() 方法查询主键并填充相应属性
       keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
-    } else if (keyGenerator instanceof SelectKeyGenerator) {
+    }
+    // 非自增主键
+    else if (keyGenerator instanceof SelectKeyGenerator) {
       statement.execute(sql);
       rows = statement.getUpdateCount();
       keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
     } else {
       statement.execute(sql);
+      // 获取sql影响行数
       rows = statement.getUpdateCount();
     }
     return rows;
@@ -66,13 +71,17 @@ public class SimpleStatementHandler extends BaseStatementHandler {
   @Override
   public void batch(Statement statement) throws SQLException {
     String sql = boundSql.getSql();
+    // 只是添加进去而已，不是立即执行的
     statement.addBatch(sql);
   }
 
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
+    // 获取SQL语句
     String sql = boundSql.getSql();
+    // 执行sql
     statement.execute(sql);
+    // 处理resultset映射，得到结果对象
     return resultSetHandler.handleResultSets(statement);
   }
 
