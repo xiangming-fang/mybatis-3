@@ -29,6 +29,8 @@ import org.apache.ibatis.session.ResultHandler;
  */
 public class DefaultMapResultHandler<K, V> implements ResultHandler<V> {
 
+  // DefaultMapResultHandler 实现的底层使用 Map<K, V> 存储映射得到的 Java 对象
+  // 其中 Key 是从结果对象中获取的指定属性的值，Value 就是映射得到的 Java 对象。
   private final Map<K, V> mappedResults;
   private final String mapKey;
   private final ObjectFactory objectFactory;

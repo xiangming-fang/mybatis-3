@@ -25,12 +25,17 @@ import org.apache.ibatis.cursor.Cursor;
 /**
  * @author Clinton Begin
  */
+// 当 MyBatis 执行完一条 select 语句，拿到 ResultSet 结果集之后，会将其交给关联的 ResultSetHandler 进行后续的映射处理。
+// 将resultSet结果集映射成javabean
 public interface ResultSetHandler {
 
+  // 将ResultSet映射成Java对象
   <E> List<E> handleResultSets(Statement stmt) throws SQLException;
 
+  // 将ResultSet映射成游标对象
   <E> Cursor<E> handleCursorResultSets(Statement stmt) throws SQLException;
 
+  // 处理存储过程的输出参数
   void handleOutputParameters(CallableStatement cs) throws SQLException;
 
 }

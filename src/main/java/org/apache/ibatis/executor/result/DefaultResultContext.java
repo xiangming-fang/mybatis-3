@@ -20,8 +20,10 @@ import org.apache.ibatis.session.ResultContext;
 /**
  * @author Clinton Begin
  */
+//  DefaultResultContext 对象，它的生命周期与一个 ResultSet 相同
 public class DefaultResultContext<T> implements ResultContext<T> {
 
+  // 每从 ResultSet 映射得到一个 Java 对象都会暂存到 DefaultResultContext 中的 resultObject 字段
   private T resultObject;
   private int resultCount;
   private boolean stopped;
