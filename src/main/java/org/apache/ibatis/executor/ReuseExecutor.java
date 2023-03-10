@@ -36,8 +36,12 @@ import org.apache.ibatis.transaction.Transaction;
 /**
  * @author Clinton Begin
  */
+// ReuseExecutor 这个 BaseExecutor 实现就实现了重用 Statement 的优化，
+// ReuseExecutor 维护了一个 statementMap 字段（HashMap<String, Statement>类型）来缓存已有的 Statement 对象，
+// 该缓存的 Key 是 SQL 模板，Value 是 SQL 模板对应的 Statement 对象。这样在执行相同 SQL 模板时，我们就可以复用 Statement 对象了。
 public class ReuseExecutor extends BaseExecutor {
 
+  // 缓存statement对象，达到复用的目的
   private final Map<String, Statement> statementMap = new HashMap<>();
 
   public ReuseExecutor(Configuration configuration, Transaction transaction) {
@@ -73,9 +77,11 @@ public class ReuseExecutor extends BaseExecutor {
 
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) {
+    // 关闭statementMap集合中缓存的全部Statement对象
     for (Statement stmt : statementMap.values()) {
       closeStatement(stmt);
     }
+    // 清空statementMap集合
     statementMap.clear();
     return Collections.emptyList();
   }

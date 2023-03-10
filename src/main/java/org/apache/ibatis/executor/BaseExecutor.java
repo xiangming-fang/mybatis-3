@@ -52,6 +52,7 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 // 变化的部分则是具体的数据库操作
 
 //  BaseExecutor 会给每个 SqlSession 对象关联一个 Cache 对象
+//  BaseExecutor 通过模板方法模式实现了读写一级缓存、事务管理等不随场景变化的基础方法
 public abstract class BaseExecutor implements Executor {
 
   private static final Log log = LogFactory.getLog(BaseExecutor.class);

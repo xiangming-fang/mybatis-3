@@ -36,7 +36,9 @@ import org.apache.ibatis.transaction.Transaction;
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
-// 在其他 executor实现的基础上添加了缓存的功能
+// 在其他 executor实现的基础上添加了缓存的功能，二级缓存
+  // 在解析到 <cache-ref> 标签时，MyBatis 并不会创建新的 Cache 对象，
+// 而是根据 <cache-ref> 标签的 namespace 属性查找指定命名空间对应的 Cache 对象，然后让当前命名空间与指定命名空间共享同一个 Cache 对象。
 public class CachingExecutor implements Executor {
 
   // 被装饰对象
@@ -87,7 +89,9 @@ public class CachingExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler)
       throws SQLException {
+    // 获取BoundSql对象
     BoundSql boundSql = ms.getBoundSql(parameterObject);
+    // 创建相应的CacheKey
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
@@ -95,20 +99,28 @@ public class CachingExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler,
       CacheKey key, BoundSql boundSql) throws SQLException {
+    // 获取该命名空间使用的二级缓存
     Cache cache = ms.getCache();
+    // 是否开启了二级缓存功能
     if (cache != null) {
+      // 根据<select>标签配置决定是否需要清空二级缓存
       flushCacheIfRequired(ms);
+      // 检测useCache配置以及是否使用了resultHandler配置
       if (ms.isUseCache() && resultHandler == null) {
         ensureNoOutParams(ms, boundSql);
         @SuppressWarnings("unchecked")
+        // 查询二级缓存
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
+          // 二级缓存未命中，通过被装饰的Executor对象查询结果对象
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+          // 将查询结果放入TransactionalCache.entriesToAddOnCommit集合中暂存
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
         return list;
       }
     }
+    // 如果未开启二级缓存，直接通过被装饰的Executor对象查询结果对象
     return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
